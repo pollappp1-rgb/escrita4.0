@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>ESCRITA 4.0 Manager</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <style>
+    :root{
+      --bg:#f6f7fb; --card:#ffffff; --text:#111827; --muted:#6b7280; --primary:#3b82f6;
+      --accent:#10b981; --danger:#ef4444; --warning:#f59e0b; --border:#e5e7eb; --shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+    [data-theme="dark"]{
+      --bg:#0b1020; --card:#0f152b; --text:#e5e7eb; --muted:#94a3b8; --primary:#60a5fa;
+      --accent:#34d399; --danger:#f87171; --warning:#fbbf24; --border:#1f2a44; --shadow:0 2px 10px rgba(0,0,0,.35);
+    }
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+    *{box-sizing:border-box}
+    header{position:sticky;top:0;z-index:10;background:var(--card);box-shadow:var(--shadow);}
+    .bar{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto;padding:10px 16px;}
+    .brand{display:flex;align-items:center;gap:12px;flex:1;}
+    .brand .logo{width:36px;height:36px;border-radius:8px;background:#e5e7eb;overflow:hidden;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;color:#777}
+    .brand h1{font-size:16px;font-weight:700;margin:0;line-height:1.2}
+    .brand small{display:block;color:var(--muted);font-weight:500}
+    .right{display:flex;gap:8px;align-items:center;}
+    .btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:8px 12px;border-radius:10px;cursor:pointer}
+    .btn:hover{filter:brightness(1.02)}
+    .btn.primary{background:var(--primary);border-color:transparent;color:white}
+    .btn.success{background:var(--accent);border-color:transparent;color:#07130d}
+    .btn.danger{background:var(--danger);border-color:transparent;color:white}
+    .btn.warning{background:var(--warning);border-color:transparent;color:#14130a}
+    .chip{display:inline-block;border:1px solid var(--border);padding:2px 8px;border-radius:999px;color:var(--muted);font-size:12px}
+    .container{max-width:1200px;margin:16px auto;padding:0 16px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow);padding:16px}
+    .grid{display:grid;gap:16px}
+    .grid.cols-2{grid-template-columns:1fr 1fr}
+    .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+    .grid.resp{grid-template-columns:1fr}
+    @media(min-width:900px){.grid.resp{grid-template-columns:1.2fr 1fr}}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+    .tab{padding:8px 12px;border-radius:8px;border:1px solid var(--border);cursor:pointer;background:var(--card)}
+    .tab.active{background:var(--primary);border-color:transparent;color:#fff}
+    .hidden{display:none!important}
+    input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:var(--card);color:var(--text)}
+    label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+    .row{display:flex;gap:10px}
+    .row > *{flex:1}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top}
+    th{color:var(--muted);font-weight:600}
+    .muted{color:var(--muted)}
+    .kpi{display:flex;gap:8px;align-items:center}
+    .kpi strong{font-size:20px}
+    .sep{height:1px;background:var(--border);margin:8px 0}
+    .right-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+    .pill{padding:2px 8px;border-radius:999px;background:rgba(0,0,0,.05);border:1px solid var(--border);color:var(--muted);font-size:12px}
+    .warn{color:var(--warning)}
+    .ok{color:var(--accent)}
+    .danger-t{color:var(--danger)}
+    .note{font-size:12px;color:var(--muted)}
+    .nowrap{white-space:nowrap}
+    .hstack{display:flex;gap:8px;align-items:center}
+    .vstack{display:flex;flex-direction:column;gap:8px}
+    .tag{display:inline-block;padding:2px 8px;background:rgba(99, 102, 241, .1);border:1px solid var(--border);border-radius:999px;font-size:12px}
+    /* Print (for PDF export of participation list, results, and scoreboards) */
+    @media print{
+      header,.no-print,.tabs,.right-actions,button,input,select,textarea{display:none!important}
+      .container{max-width:100%;margin:0;padding:0}
+      .card{border:none;box-shadow:none;padding:0}
+      body{background:#fff;color:#000}
+      .print-block{display:block!important}
+    }
+  </style>
+</head>
+<body data-theme="light">
+<header>
+  <div class="bar">
+    <div class="brand">
+      <div class="logo" id="brandLogo">🪄</div>
+      <div>
+        <h1 id="brandName">ESCRITA 4.0</h1>
+        <small id="brandSub">RIBATH Eduvalley Students' Association</small>
+      </div>
+    </div>
+    <div class="right">
+      <span id="sessionInfo" class="chip"></span>
+      <button class="btn" id="themeToggle">🌗 Theme</button>
+      <button class="btn" id="logoutBtn" title="Logout">↩️ Logout</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Login -->
+  <section id="loginView" class="card">
+    <h2>Sign in</h2>
+    <p class="muted">Event Crew and Team portals.</p>
+    <div class="grid resp">
+      <div class="vstack">
+        <label for="loginId">ID</label>
+        <input id="loginId" placeholder="admin / qar / qaz"/>
+      </div>
+      <div class="vstack">
+        <label for="loginPw">Password</label>
+        <input id="loginPw" type="password" placeholder="••••••••"/>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button class="btn primary" id="loginBtn">Sign in</button>
+      <button class="btn" id="prefillAdmin">Use admin</button>
+      <button class="btn" id="prefillQar">Use Qarawiyyin</button>
+      <button class="btn" id="prefillQaz">Use Qazwiyyin</button>
+    </div>
+    <p class="note" style="margin-top:10px">Default credentials: admin/admin123, qar/qar123, qaz/qaz123</p>
+  </section>
+
+  <!-- Admin Portal -->
+  <section id="adminView" class="hidden">
+    <div class="tabs" id="adminTabs"></div>
+    <div id="adminDashboard" class="card"></div>
+    <div id="adminBranding" class="card hidden"></div>
+    <div id="adminTeams" class="card hidden"></div>
+    <div id="adminCompetitions" class="card hidden"></div>
+    <div id="adminRoster" class="card hidden"></div>
+    <div id="adminAttend" class="card hidden"></div>
+    <div id="adminJudge" class="card hidden"></div>
+    <div id="adminScoreboards" class="card hidden"></div>
+    <div id="adminResults" class="card hidden"></div>
+    <div id="adminData" class="card hidden"></div>
+  </section>
+
+  <!-- Team Portal -->
+  <section id="teamView" class="hidden">
+    <div class="tabs" id="teamTabs"></div>
+    <div id="teamDashboard" class="card"></div>
+    <div id="teamRoster" class="card hidden"></div>
+    <div id="teamRegister" class="card hidden"></div>
+    <div id="teamParticipationList" class="card hidden"></div>
+    <div id="teamScoreResults" class="card hidden"></div>
+    <div id="teamData" class="card hidden"></div>
+  </section>
+</main>
+
+<input type="file" id="hiddenFileInput" class="hidden" accept="application/json,image/*"/>
+
+<script>
+/* ========= In-memory DB with localStorage persist ========= */
+const STORAGE_KEY='escritaDB_v1';
+const TEAMS=['Qarawiyyin','Qazwiyyin'];
+let db=null;
+let session={role:null,team:null}; // role: 'admin'|'team'
+const q=(id)=>document.getElementById(id);
+const now=()=>new Date().toISOString();
+const uid=(p='id')=>p+'_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+
+function defaultDB(){
+  return {
+    meta:{ name:'ESCRITA 4.0', logoDataUrl:'', primaryColor:'#3b82f6', theme:'light' },
+    auth:{
+      admin:{ id:'admin', password:'admin123' },
+      teams:{
+        Qarawiyyin:{ id:'qar', password:'qar123', lockedByEvent:false, selfLocked:false },
+        Qazwiyyin:{ id:'qaz', password:'qaz123', lockedByEvent:false, selfLocked:false },
+      }
+    },
+    categories:['Senior','Junior','General'],
+    competitions:[], // {id,name,category,type,quotaPerTeam,active,createdAt}
+    students:{}, // studentId -> {id,team,name,chest,category,createdAt}
+    registrations:{}, // compId -> { teamParticipants: {Team:[studentId,...]}, attendance:{studentId:true/false}}
+    results:{}, // compId -> { winners:[{rank,studentId,points}], log:[{ts,action,note}] }
+    adjustments:[] // {id, team, amount, category:null|'Senior'|..., reason, ts}
+  };
+}
+function saveDB(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }
+function loadDB(){
+  const raw=localStorage.getItem(STORAGE_KEY);
+  if(!raw){ db=defaultDB(); seedSample(); saveDB(); }
+  else { db=JSON.parse(raw); }
+  applyTheme(db.meta.theme);
+  setPrimaryColor(db.meta.primaryColor);
+  renderHeader();
+}
+function resetWithSample(){
+  db=defaultDB(); seedSample(); saveDB(); routeToLogin();
+}
+
+/* ========= Sample data (optional) ========= */
+function seedSample(){
+  // competitions
+  const comps=[
+    {name:'Malayalam Elocution',category:'Senior',type:'individual',quotaPerTeam:3},
+    {name:'English Elocution',category:'Senior',type:'individual',quotaPerTeam:3},
+    {name:'Quran Recitation',category:'Junior',type:'individual',quotaPerTeam:4},
+    {name:'Group Nadh',category:'General',type:'group',quotaPerTeam:8},
+  ];
+  comps.forEach(c=>{
+    db.competitions.push({id:uid('cmp'), name:c.name, category:c.category, type:c.type, quotaPerTeam:c.quotaPerTeam, active:true, createdAt:now()});
+  });
+  // a few students
+  addStudent('Qarawiyyin','QAR-001','Minhaj','Senior');
+  addStudent('Qarawiyyin','QAR-002','Sinan','Senior');
+  addStudent('Qarawiyyin','QAR-101','Aisha','Junior');
+  addStudent('Qazwiyyin','QAZ-001','Hadi','Senior');
+  addStudent('Qazwiyyin','QAZ-102','Safa','Junior');
+}
+
+/* ========= Header / Theme ========= */
+function renderHeader(){
+  q('brandName').textContent=db.meta.name;
+  q('sessionInfo').textContent=session.role? (session.role==='admin'?'Event Crew':'Team: '+session.team):'Not signed in';
+  const lg=q('brandLogo');
+  lg.innerHTML = db.meta.logoDataUrl ? `<img src="${db.meta.logoDataUrl}" alt="logo" style="width:100%;height:100%;object-fit:cover;border-radius:8px"/>` : '🪄';
+}
+function applyTheme(theme){
+  document.body.setAttribute('data-theme', theme);
+  db.meta.theme=theme; saveDB();
+}
+function setPrimaryColor(hex){
+  document.documentElement.style.setProperty('--primary', hex||'#3b82f6');
+}
+
+/* ========= Auth ========= */
+function tryLogin(id,pw){
+  // admin
+  if(id===db.auth.admin.id && pw===db.auth.admin.password){
+    session={role:'admin',team:null};
+    renderHeader(); showAdmin(); return true;
+  }
+  // team
+  for(const t of TEAMS){
+    const creds=db.auth.teams[t];
+    if(id===creds.id && pw===creds.password){
+      session={role:'team',team:t};
+      renderHeader(); showTeam(); return true;
+    }
+  }
+  alert('Invalid credentials');
+  return false;
+}
+function logout(){
+  session={role:null,team:null};
+  renderHeader();
+  routeToLogin();
+}
+
+/* ========= Core helpers ========= */
+function addStudent(team,chest,name,category){
+  // Enforce unique chest across event
+  for(const sId in db.students){
+    if(db.students[sId].chest===chest){ return {ok:false,msg:'Chest number already exists'}; }
+  }
+  const id=uid('stu');
+  db.students[id]={id,team,chest,name,category,createdAt:now()};
+  saveDB(); return {ok:true,id};
+}
+function removeStudent(studentId){
+  // prevent if registered
+  const used = Object.values(db.registrations).some(rec=> {
+    return Object.values(rec.teamParticipants||{}).some(arr=>arr.includes(studentId));
+  });
+  if(used) return {ok:false,msg:'Student is registered in competitions. Remove them from competitions first.'};
+  delete db.students[studentId];
+  saveDB(); return {ok:true};
+}
+function teamLocked(t){
+  const lockByEvent = db.auth.teams[t].lockedByEvent;
+  const selfLock = db.auth.teams[t].selfLocked;
+  return lockByEvent || selfLock;
+}
+function ensureReg(compId){
+  if(!db.registrations[compId]){
+    db.registrations[compId]={ teamParticipants:{}, attendance:{} };
+    TEAMS.forEach(t=>db.registrations[compId].teamParticipants[t]=[]);
+  }
+  return db.registrations[compId];
+}
+function getCompetitionById(id){ return db.competitions.find(c=>c.id===id); }
+function getStudentsByTeam(team){
+  return Object.values(db.students).filter(s=>s.team===team);
+}
+function getStudentsByTeamAndCategory(team,category){
+  return getStudentsByTeam(team).filter(s=> category==='General' ? true : s.category===category);
+}
+function registerStudentToCompetition(team, studentId, compId){
+  const comp=getCompetitionById(compId); if(!comp) return {ok:false,msg:'Invalid competition'};
+  if(teamLocked(team)) return {ok:false,msg:'Team is locked'};
+  // category rule
+  const stu=db.students[studentId];
+  if(!stu) return {ok:false,msg:'Student not found'};
+  if(comp.category!=='General' && comp.category!==stu.category){
+    return {ok:false,msg:`Only ${comp.category} students allowed`};
+  }
+  const reg=ensureReg(compId);
+  const arr=reg.teamParticipants[team]||[];
+  // prevent duplicates
+  if(arr.includes(studentId)) return {ok:false,msg:'Already registered'};
+  // enforce quota
+  if(arr.length >= comp.quotaPerTeam) return {ok:false,msg:`Quota reached (${comp.quotaPerTeam})`};
+  arr.push(studentId);
+  reg.teamParticipants[team]=arr;
+  saveDB(); return {ok:true};
+}
+function unregisterStudentFromCompetition(team, studentId, compId){
+  const reg=ensureReg(compId);
+  reg.teamParticipants[team]=(reg.teamParticipants[team]||[]).filter(id=>id!==studentId);
+  // remove attendance
+  delete reg.attendance[studentId];
+  // also remove from winners if present
+  const res=db.results[compId];
+  if(res && res.winners){ res.winners = res.winners.filter(w=>w.studentId!==studentId); }
+  saveDB(); return {ok:true};
+}
+function markAttendance(compId, studentId, present){
+  const reg=ensureReg(compId);
+  reg.attendance[studentId]=!!present; saveDB();
+}
+function setWinners(compId, winners){ // winners: [{rank, studentId, points}]
+  if(!db.results[compId]) db.results[compId]={winners:[],log:[]};
+  db.results[compId].winners=winners;
+  db.results[compId].log.push({ts:now(), action:'update', note:`Set ${winners.length} winners`});
+  saveDB();
+}
+function addAdjustment(team, amount, reason, category=null){
+  db.adjustments.push({id:uid('adj'), team, amount:parseFloat(amount)||0, reason, category, ts:now()});
+  saveDB();
+}
+function removeAdjustment(id){
+  db.adjustments = db.adjustments.filter(a=>a.id!==id); saveDB();
+}
+
+/* ========= Points / Scoreboards ========= */
+function computePoints(){
+  // returns { byCompetitor: Map(studentId->totalPoints), byCompetitorByCat: {cat:Map}, teamTotals: Map(team->points), teamTotalsByCat: {cat:Map}}
+  const byCompetitor=new Map();
+  const byCompetitorByCat={};
+  db.categories.forEach(c=>byCompetitorByCat[c]=new Map());
+
+  for(const compId in db.results){
+    const res=db.results[compId]; if(!res || !res.winners) continue;
+    res.winners.forEach(w=>{
+      const stu=db.students[w.studentId]; if(!stu) return;
+      const cat=stu.category; // competitor's own category
+      byCompetitor.set(w.studentId, (byCompetitor.get(w.studentId)||0)+Number(w.points||0));
+      const map=byCompetitorByCat[cat]; map.set(w.studentId, (map.get(w.studentId)||0)+Number(w.points||0));
+    });
+  }
+  // team totals (per category and overall)
+  const teamTotals=new Map(); const teamTotalsByCat={}; db.categories.forEach(c=>teamTotalsByCat[c]=new Map());
+  // from competitor points
+  for(const [stuId, pts] of byCompetitor.entries()){
+    const stu=db.students[stuId]; if(!stu) continue;
+    teamTotals.set(stu.team, (teamTotals.get(stu.team)||0)+pts);
+    const map=teamTotalsByCat[stu.category];
+    map.set(stu.team, (map.get(stu.team)||0)+pts);
+  }
+  // apply adjustments
+  db.adjustments.forEach(a=>{
+    if(a.category){
+      const map=teamTotalsByCat[a.category];
+      map.set(a.team,(map.get(a.team)||0)+a.amount);
+    }else{
+      teamTotals.set(a.team,(teamTotals.get(a.team)||0)+a.amount);
+    }
+  });
+  return {byCompetitor, byCompetitorByCat, teamTotals, teamTotalsByCat};
+}
+
+/* ========= UI Helpers ========= */
+function setTabs(containerId, tabs, onClick){
+  const c=q(containerId); c.innerHTML='';
+  tabs.forEach((t,i)=>{
+    const b=document.createElement('button'); b.className='tab'+(t.active?' active':''); b.textContent=t.label;
+    b.onclick=()=>onClick(t.id);
+    c.appendChild(b);
+  });
+}
+function formatDT(iso){ const d=new Date(iso); return d.toLocaleString(); }
+function download(filename, content, type='application/json'){
+  const blob=new Blob([content], {type}); const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href);
+}
+function openFile(accept, cb){
+  const fi=q('hiddenFileInput'); fi.accept=accept;
+  fi.onchange=(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>cb(file, reader.result);
+    reader.readAsText(file);
+    fi.value='';
+  };
+  fi.click();
+}
+function openImage(cb){
+  const fi=q('hiddenFileInput'); fi.accept='image/*';
+  fi.onchange=(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>cb(reader.result);
+    reader.readAsDataURL(file);
+    fi.value='';
+  };
+  fi.click();
+}
+function toCSV(rows){
+  return rows.map(r=>r.map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+}
+
+/* ========= Admin View ========= */
+function showAdmin(){
+  q('loginView').classList.add('hidden');
+  q('teamView').classList.add('hidden');
+  q('adminView').classList.remove('hidden');
+  setTabs('adminTabs',[
+    {id:'dash',label:'Dashboard',active:true},
+    {id:'brand',label:'Branding'},
+    {id:'teams',label:'Teams & Access'},
+    {id:'comp',label:'Competitions'},
+    {id:'roster',label:'Rosters'},
+    {id:'att',label:'Attendance'},
+    {id:'judge',label:'Judge Panel'},
+    {id:'score',label:'Scoreboards'},
+    {id:'results',label:'Results'},
+    {id:'data',label:'Data I/O'}
+  ], (tab)=>adminSwitch(tab));
+  adminRenderDashboard(); adminRenderBranding(); adminRenderTeams(); adminRenderCompetitions();
+  adminRenderRoster(); adminRenderAttendance(); adminRenderJudge(); adminRenderScoreboards(); adminRenderResults(); adminRenderData();
+  adminSwitch('dash');
+}
+function adminSwitch(id){
+  ['adminDashboard','adminBranding','adminTeams','adminCompetitions','adminRoster','adminAttend','adminJudge','adminScoreboards','adminResults','adminData']
+    .forEach(sec=>q(sec).classList.add('hidden'));
+  const map={dash:'adminDashboard', brand:'adminBranding', teams:'adminTeams', comp:'adminCompetitions', roster:'adminRoster', att:'adminAttend', judge:'adminJudge', score:'adminScoreboards', results:'adminResults', data:'adminData'};
+  q(map[id]).classList.remove('hidden');
+  // activate tab UI
+  [...q('adminTabs').children].forEach(b=>b.classList.remove('active'));
+  const idx=['dash','brand','teams','comp','roster','att','judge','score','results','data'].indexOf(id);
+  q('adminTabs').children[idx].classList.add('active');
+}
+function adminRenderDashboard(){
+  const totalStu=Object.keys(db.students).length;
+  const totalComp=db.competitions.length;
+  const regCount=Object.values(db.registrations).reduce((sum,r)=> sum + TEAMS.reduce((s,t)=>s+(r.teamParticipants?.[t]?.length||0),0), 0);
+  const locks=TEAMS.map(t=>teamLocked(t)?'🔒 '+t:'🔓 '+t).join(' • ');
+  q('adminDashboard').innerHTML=`
+    <h2>Event Crew Dashboard</h2>
+    <div class="grid cols-3">
+      <div class="card"><div class="kpi">📚 <div><div class="muted">Competitions</div><strong>${totalComp}</strong></div></div></div>
+      <div class="card"><div class="kpi">🧑‍🎓 <div><div class="muted">Students</div><strong>${totalStu}</strong></div></div></div>
+      <div class="card"><div class="kpi">📝 <div><div class="muted">Registrations</div><strong>${regCount}</strong></div></div></div>
+    </div>
+    <p class="muted">Access: ${locks}</p>
+  `;
+}
+function adminRenderBranding()
